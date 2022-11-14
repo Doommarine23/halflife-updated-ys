@@ -278,7 +278,7 @@ void CMortar::MortarExplode()
 	UTIL_TraceLine(pev->origin + Vector(0, 0, 1024), pev->origin - Vector(0, 0, 1024), dont_ignore_monsters, ENT(pev), &tr);
 
 	Explode(&tr, DMG_BLAST | DMG_MORTAR);
-	UTIL_ScreenShake(tr.vecEndPos, 25.0, 150.0, 1.0, 750);
+	UTIL_ScreenShake(tr.vecEndPos, 25.0, 150.0, 1.0, 750, false);
 
 #if 0
 	int pitch = RANDOM_LONG(95,124);

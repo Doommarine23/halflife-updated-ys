@@ -116,8 +116,8 @@ public:
 //#define CROWBAR_MAX_CLIP		WEAPON_NOCLIP
 #define GLOCK_MAX_CLIP 17
 #define PYTHON_MAX_CLIP 6
-#define MP5_MAX_CLIP 50
-#define MP5_DEFAULT_AMMO 25
+#define MP5_MAX_CLIP 30 //YELLOW SHIFT Reduced to 30. Default Ammo reduced to 15.
+#define MP5_DEFAULT_AMMO 15
 #define SHOTGUN_MAX_CLIP 8
 #define CROSSBOW_MAX_CLIP 5
 #define RPG_MAX_CLIP 1
@@ -132,8 +132,8 @@ public:
 // the default amount of ammo that comes with each gun when it spawns
 #define GLOCK_DEFAULT_GIVE 17
 #define PYTHON_DEFAULT_GIVE 6
-#define MP5_DEFAULT_GIVE 25
-#define MP5_DEFAULT_AMMO 25
+#define MP5_DEFAULT_GIVE 15
+#define MP5_DEFAULT_AMMO 15
 #define MP5_M203_DEFAULT_GIVE 0
 #define SHOTGUN_DEFAULT_GIVE 12
 #define CROSSBOW_DEFAULT_GIVE 5
@@ -637,6 +637,8 @@ enum mp5_e
 	MP5_IDLE1,
 	MP5_LAUNCH,
 	MP5_RELOAD,
+	MP5_RELOAD_EMPTY, //YELLOWSHIFT Empty 1+2
+	MP5_RELOAD_EMPTY2,
 	MP5_DEPLOY,
 	MP5_FIRE1,
 	MP5_FIRE2,

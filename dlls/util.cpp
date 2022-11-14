@@ -972,7 +972,7 @@ static short FixedSigned16(float value, float scale)
 // UNDONE: Fix falloff model (disabled)?
 // UNDONE: Affect user controls?
 //LRC UNDONE: Work during trigger_camera?
-void UTIL_ScreenShake(const Vector& center, float amplitude, float frequency, float duration, float radius)
+void UTIL_ScreenShake(const Vector& center, float amplitude, float frequency, float duration, float radius, bool onfloat)
 {
 	int i;
 	float localAmplitude;
@@ -984,10 +984,12 @@ void UTIL_ScreenShake(const Vector& center, float amplitude, float frequency, fl
 	for (i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		CBaseEntity* pPlayer = UTIL_PlayerByIndex(i);
-
-		if (!pPlayer || (pPlayer->pev->flags & FL_ONGROUND) == 0) // Don't shake if not onground
-			continue;
-
+		
+		if (!onfloat) //YELLOW SHIFT 
+		{
+			if (!pPlayer || (pPlayer->pev->flags & FL_ONGROUND) == 0) // Don't shake if not onground
+				continue;
+		}
 		localAmplitude = 0;
 
 		if (radius <= 0)
@@ -1020,7 +1022,7 @@ void UTIL_ScreenShake(const Vector& center, float amplitude, float frequency, fl
 
 void UTIL_ScreenShakeAll(const Vector& center, float amplitude, float frequency, float duration)
 {
-	UTIL_ScreenShake(center, amplitude, frequency, duration, 0);
+	UTIL_ScreenShake(center, amplitude, frequency, duration, 0, false);
 }
 
 

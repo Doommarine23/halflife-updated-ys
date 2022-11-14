@@ -58,6 +58,9 @@ void CMP5::Precache()
 	PRECACHE_SOUND("items/clipinsert1.wav");
 	PRECACHE_SOUND("items/cliprelease1.wav");
 
+	PRECACHE_SOUND("weapons/9mmar_slideback.wav"); // rack'n'slap YELLOWSHIFT
+	PRECACHE_SOUND("weapons/9mmar_slideforward.wav");
+
 	PRECACHE_SOUND("weapons/hks1.wav"); // H to the K
 	PRECACHE_SOUND("weapons/hks2.wav"); // H to the K
 	PRECACHE_SOUND("weapons/hks3.wav"); // H to the K
@@ -168,6 +171,10 @@ void CMP5::PrimaryAttack()
 	flags = 0;
 #endif
 
+#ifndef CLIENT_DLL //YELLOW SHIFT Screen shake recoil
+	UTIL_ScreenShake(m_pPlayer->pev->origin, 1.5, 2.5, 0.3, 2, true);
+#endif
+
 	//	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usMP5, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0);
 	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usMP5, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, RANDOM_LONG(MP5_FIRE1, MP5_FIRE3), m_iShell, 0, 0);
 
@@ -175,10 +182,10 @@ void CMP5::PrimaryAttack()
 		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", false, 0);
 
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.1);
+	m_flNextPrimaryAttack = GetNextAttackDelay(0.08);  // YELLOW SHIFT increased ROF
 
 	if (m_flNextPrimaryAttack < UTIL_WeaponTimeBase())
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.2;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.08; // YELLOW SHIFT increased ROF (may not be required?)
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat(m_pPlayer->random_seed, 10, 15);
 }
@@ -244,6 +251,19 @@ void CMP5::Reload()
 	if (m_pPlayer->ammo_9mm <= 0)
 		return;
 
+	if (m_iClip == 0)
+		switch (RANDOM_LONG(0, 1))
+		{
+		case 0:
+			DefaultReload(MP5_MAX_CLIP, MP5_RELOAD_EMPTY, 2.24);
+			break;
+
+		default:
+		case 1:
+			DefaultReload(MP5_MAX_CLIP, MP5_RELOAD_EMPTY2, 2.24);
+			break;
+		}
+	else	
 	DefaultReload(MP5_MAX_CLIP, MP5_RELOAD, 1.5);
 }
 

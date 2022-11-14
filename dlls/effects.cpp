@@ -2764,7 +2764,7 @@ bool CShake::KeyValue(KeyValueData* pkvd)
 
 void CShake::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
-	UTIL_ScreenShake(pev->origin, Amplitude(), Frequency(), Duration(), Radius());
+	UTIL_ScreenShake(pev->origin, Amplitude(), Frequency(), Duration(), Radius(), false);
 	m_iState = STATE_ON;	  //LRC
 	SetNextThink(Duration()); //LRC
 }
