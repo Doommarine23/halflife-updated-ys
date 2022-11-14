@@ -12,6 +12,21 @@
 *   without written permission from Valve LLC.
 *
 ****/
+
+/*
+Special Thanks to:
+
+Admer456 - Helped debug and recoded pickup usage to be better
+Aeomech - Suggestions for improvement and help with debugging
+Solokiller - Provided insight regarding weaponptr and helped point out a critical crash error elsewhere in this project that the tripmine was triggering.
+*/
+
+// YELLOW SHIFT TODO:
+/*
+* Clean up commented out code
+* Improve pickup mechanics: Non-solid until hits ground.
+*/
+
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
@@ -32,6 +47,7 @@ class CTripmineGrenade : public CGrenade
 
 	bool Save(CSave& save) override;
 	bool Restore(CRestore& restore) override;
+	bool isDeactivated = false;
 
 	static TYPEDESCRIPTION m_SaveData[];
 
@@ -43,6 +59,7 @@ class CTripmineGrenade : public CGrenade
 	void EXPORT DelayDeathThink();
 	void Killed(entvars_t* pevAttacker, int iGib) override;
 	void EXPORT PlayerUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value); // YELLOW SHIFT for using tripmines to grab them
+	void EXPORT PlayerTouch(CBaseEntity* pOther);
 	virtual int ObjectCaps(void) { return CBaseEntity ::ObjectCaps() | FCAP_IMPULSE_USE; } // YELLOWSHIFT ObjectCaps and Use are used for picking up Tripmines
 
 	void MakeBeam();
@@ -218,21 +235,52 @@ void CTripmineGrenade::PowerupThink()
 
 // YELLOW SHIFT You can pickup Tripmines
 /* TO-DO: Delete and give ammo directly. But if player is full on tripmines, simply spawn new one.*/
+// Thanks to Admer456 for helping recode this function, Aeomech for debug, & Solokiller for information regarding GetWeaponPtr
 void CTripmineGrenade::PlayerUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
 	if (pActivator->IsPlayer() && value == 1)
 	{
-		SetUse(NULL);
+		CBasePlayer* player = static_cast<CBasePlayer*>(pActivator);
+
 		STOP_SOUND(ENT(pev), CHAN_VOICE, "weapons/mine_deploy.wav");
 		STOP_SOUND(ENT(pev), CHAN_BODY, "weapons/mine_charge.wav");
 		KillBeam();
-		CBaseEntity* pMine = Create("weapon_tripmine", pev->origin + m_vecDir * 24, pev->angles);
-		pMine->pev->spawnflags |= SF_NORESPAWN;
-		SetThink(&CTripmineGrenade::SUB_Remove);
-		//pActivator->GiveAmmo(AMMO_BUCKSHOTBOX_GIVE, "buckshot", BUCKSHOT_MAX_CARRY);
+
+		// Try picking up
+		if (player->GiveAmmo(1, "Trip Mine", TRIPMINE_MAX_CARRY) > 0)
+		{
+			// If the player successfully picked up this tripmine, KILL ME
+			UTIL_Remove(this);
+			return;
+		}
+
+		// The player hasn't successfully picked this thing up, but still wants to rip the thing off the wall
+		SetThink(&CBaseEntity::SUB_DoNothing);
+		pev->movetype = MOVETYPE_TOSS;
+		// Special minimised bounding box to prevent clipping into walls
+		UTIL_SetSize(pev, Vector(-4, -4, -7), Vector(4, 4, 7));
+		SetTouch(&CTripmineGrenade::PlayerTouch);
+		//pev->solid = SOLID_BBOX;
+	}
+		return;
+}
+
+void CTripmineGrenade::PlayerTouch(CBaseEntity* pOther)
+{
+	CBasePlayer* player = static_cast<CBasePlayer*>(pOther);
+
+	if (!pOther->IsPlayer())
+		return;
+	// Player has less than max tripmines, give them a trippy.
+
+	if (player->GiveAmmo(1, "Trip Mine", TRIPMINE_MAX_CARRY) > 0)
+	{
+		// If the player successfully picked up this tripmine, KILL ME
+		UTIL_Remove(this);
 		return;
 	}
 }
+
 
 
 //void CTalkMonster::FollowerUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
@@ -276,6 +324,13 @@ void CTripmineGrenade::MakeBeam()
 
 void CTripmineGrenade::BeamBreakThink()
 {
+	/* if (isDeactivated)
+	{
+		KillBeam();
+		pev->movetype = MOVETYPE_NOCLIP;
+		return;
+	}*/
+
 	bool bBlowup = false;
 
 	TraceResult tr;
@@ -332,14 +387,14 @@ void CTripmineGrenade::BeamBreakThink()
 
 bool CTripmineGrenade::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
 {
-	if (gpGlobals->time < m_flPowerUp && flDamage < pev->health)
+	if (gpGlobals->time >= m_flPowerUp && flDamage >= pev->health)
 	{
 		// disable
 		// Create( "weapon_tripmine", pev->origin + m_vecDir * 24, pev->angles );
 		SetThink(&CTripmineGrenade::SUB_Remove);
 		SetNextThink(0.1);
 		KillBeam();
-		return false;
+		//return false;
 	}
 	return CGrenade::TakeDamage(pevInflictor, pevAttacker, flDamage, bitsDamageType);
 }
