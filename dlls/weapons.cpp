@@ -658,18 +658,18 @@ bool CBasePlayerWeapon::AddDuplicate(CBasePlayerItem* pOriginal)
 }
 
 
-void CBasePlayerWeapon::AddToPlayer(CBasePlayer* pPlayer)
+/**/ void CBasePlayerWeapon::AddToPlayer(CBasePlayer* pPlayer)
 {
 	if (!UTIL_IsMasterTriggered(m_sMaster, pPlayer)) //
 		return;
 
-	if ((iFlags() & ITEM_FLAG_EXHAUSTIBLE) != 0 && m_iDefaultAmmo == 0 && m_iClip <= 0)
+	/* if ((iFlags() & ITEM_FLAG_EXHAUSTIBLE) != 0 && m_iDefaultAmmo == 0 && m_iClip <= 0)
 	{
 		//This is an exhaustible weapon that has no ammo left. Don't add it, queue it up for destruction instead.
 		SetThink(&CSatchel::DestroyItem);
 		SetNextThink(0.1f);
 		return;
-	}
+	}*/
 
 	CBasePlayerItem::AddToPlayer(pPlayer);
 
