@@ -42,6 +42,8 @@ class CTripmineGrenade : public CGrenade
 	void EXPORT BeamBreakThink();
 	void EXPORT DelayDeathThink();
 	void Killed(entvars_t* pevAttacker, int iGib) override;
+	void EXPORT PlayerUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value); // YELLOW SHIFT for using tripmines to grab them
+	virtual int ObjectCaps(void) { return CBaseEntity ::ObjectCaps() | FCAP_IMPULSE_USE; } // YELLOWSHIFT ObjectCaps and Use are used for picking up Tripmines
 
 	void MakeBeam();
 	void KillBeam();
@@ -80,6 +82,7 @@ IMPLEMENT_SAVERESTORE(CTripmineGrenade, CGrenade);
 void CTripmineGrenade::Spawn()
 {
 	Precache();
+	UTIL_PrecacheOther("weapon_tripmine");
 	// motor
 	pev->movetype = MOVETYPE_FLY;
 	pev->solid = SOLID_NOT;
@@ -120,6 +123,7 @@ void CTripmineGrenade::Spawn()
 		EMIT_SOUND(ENT(pev), CHAN_BODY, "weapons/mine_charge.wav", 0.2, ATTN_NORM); // chargeup
 
 		m_pRealOwner = pev->owner; // see CTripmineGrenade for why.
+		SetUse(&CTripmineGrenade::PlayerUse);
 	}
 
 	UTIL_MakeAimVectors(pev->angles);
@@ -152,7 +156,6 @@ void CTripmineGrenade::WarningThink()
 void CTripmineGrenade::PowerupThink()
 {
 	TraceResult tr;
-
 	if (m_hOwner == NULL)
 	{
 		// find an owner
@@ -213,7 +216,26 @@ void CTripmineGrenade::PowerupThink()
 	SetNextThink(0.1);
 }
 
+// YELLOW SHIFT You can pickup Tripmines
+/* TO-DO: Delete and give ammo directly. But if player is full on tripmines, simply spawn new one.*/
+void CTripmineGrenade::PlayerUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+{
+	if (pActivator->IsPlayer() && value == 1)
+	{
+		SetUse(NULL);
+		STOP_SOUND(ENT(pev), CHAN_VOICE, "weapons/mine_deploy.wav");
+		STOP_SOUND(ENT(pev), CHAN_BODY, "weapons/mine_charge.wav");
+		KillBeam();
+		CBaseEntity* pMine = Create("weapon_tripmine", pev->origin + m_vecDir * 24, pev->angles);
+		pMine->pev->spawnflags |= SF_NORESPAWN;
+		SetThink(&CTripmineGrenade::SUB_Remove);
+		//pActivator->GiveAmmo(AMMO_BUCKSHOTBOX_GIVE, "buckshot", BUCKSHOT_MAX_CARRY);
+		return;
+	}
+}
 
+
+//void CTalkMonster::FollowerUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 void CTripmineGrenade::KillBeam()
 {
 	if (m_pBeam)
@@ -386,7 +408,6 @@ void CTripmine::Precache()
 	PRECACHE_MODEL("models/v_tripmine.mdl");
 	PRECACHE_MODEL("models/p_tripmine.mdl");
 	UTIL_PrecacheOther("monster_tripmine");
-
 	m_usTripFire = PRECACHE_EVENT(1, "events/tripfire.sc");
 }
 

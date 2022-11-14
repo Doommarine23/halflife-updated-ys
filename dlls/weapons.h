@@ -1186,7 +1186,6 @@ public:
 	bool Deploy() override;
 	void Holster() override;
 	void WeaponIdle() override;
-
 	bool UseDecrement() override
 	{
 #if defined(CLIENT_WEAPONS)

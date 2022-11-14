@@ -30,6 +30,8 @@ class CSatchelCharge : public CGrenade
 	void EXPORT SatchelSlide(CBaseEntity* pOther);
 	void EXPORT SatchelThink();
 
+	virtual int ObjectCaps(void) { return CBaseEntity ::ObjectCaps() | FCAP_IMPULSE_USE; } // YELLOWSHIFT ObjectCaps and PlayerUse are used for picking up Satchels
+
 public:
 	void Deactivate();
 };

@@ -161,8 +161,19 @@ void CGrenade::Killed(entvars_t* pevAttacker, int iGib)
 // Timed grenade, this think is called when time runs out.
 void CGrenade::DetonateUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
-	SetThink(&CGrenade::Detonate);
-	SetNextThink(0);
+	//YELLOW SHIFT Lets you pick up satchels. Modification to "value" may not be required? Requires testing.
+	if (value != 1)
+	{
+		SetThink(&CGrenade::Detonate);
+		SetNextThink(0);
+	}
+	else
+	{
+		CBaseEntity* pGun = DropItem("weapon_satchel", pev->origin, pev->angles);
+		UTIL_Remove(this);
+		return;
+	}
+
 }
 
 void CGrenade::PreDetonate()
