@@ -432,7 +432,7 @@ void EV_FireGlock1(event_args_t* args)
 	Vector origin;
 	Vector angles;
 	Vector velocity;
-	bool empty;
+	int empty; //YELLOW SHIFT change from bool to int
 
 	Vector ShellVelocity;
 	Vector ShellOrigin;
@@ -445,24 +445,37 @@ void EV_FireGlock1(event_args_t* args)
 	VectorCopy(args->angles, angles);
 	VectorCopy(args->velocity, velocity);
 
-	empty = 0 != args->bparam1;
+	empty = args->bparam1;//YELLOW SHIFT commented out original below
+	//empty = 0 != args->bparam1;
 	AngleVectors(angles, forward, right, up);
 
 	shell = gEngfuncs.pEventAPI->EV_FindModelIndex("models/shell.mdl"); // brass shell
 
-	if (EV_IsLocal(idx))
+	if (EV_IsLocal(idx)) //YELLOW SHIFT additional firing animations & V_PunchAxis(1)
 	{
 		EV_MuzzleFlash();
-		gEngfuncs.pEventAPI->EV_WeaponAnimation(empty ? GLOCK_SHOOT_EMPTY : GLOCK_SHOOT, 0);
+		gEngfuncs.pEventAPI->EV_WeaponAnimation((empty == 0) ? GLOCK_SHOOT_EMPTY : GLOCK_SHOOT + gEngfuncs.pfnRandomLong(0, 2), 2);
 
 		V_PunchAxis(0, -2.0);
+		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-0.25, 0.5)); // X Axis
 	}
 
 	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);
 
 	EV_EjectBrass(ShellOrigin, ShellVelocity, angles[YAW], shell, TE_BOUNCE_SHELL);
 
-	gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/pl_gun3.wav", gEngfuncs.pfnRandomFloat(0.92, 1.0), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong(0, 3));
+	switch (gEngfuncs.pfnRandomLong(0, 2)) // YELLOWSHIFT Additional firing sounds for the Glock.
+	{
+	case 0:
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/pl_gun3.wav", gEngfuncs.pfnRandomFloat(0.92, 1.0), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong(0, 3));
+		break;
+	case 1:
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/pl_gun4.wav", gEngfuncs.pfnRandomFloat(0.92, 1.0), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong(0, 3));
+		break;
+	case 2:
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/pl_gun5.wav", gEngfuncs.pfnRandomFloat(0.92, 1.0), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong(0, 3));
+		break;
+	}
 
 	EV_GetGunPosition(args, vecSrc, origin);
 
@@ -683,9 +696,9 @@ void EV_FireMP5(event_args_t* args)
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(MP5_FIRE1 + gEngfuncs.pfnRandomLong(0, 2), 0);
 
-		V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-2, 2));
+		V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-1.3, 1.3));
 
-		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-1.5, 1.5));	 // // YELLOWSHIFT X Axis punch
+		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-1.2, 1.2));	 // // YELLOWSHIFT X Axis punch
 	}
 
 	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);

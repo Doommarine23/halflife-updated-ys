@@ -57,6 +57,8 @@ void CGlock::Precache()
 	PRECACHE_SOUND("weapons/pl_gun1.wav"); //silenced handgun
 	PRECACHE_SOUND("weapons/pl_gun2.wav"); //silenced handgun
 	PRECACHE_SOUND("weapons/pl_gun3.wav"); //handgun
+	PRECACHE_SOUND("weapons/pl_gun4.wav"); // handgun
+	PRECACHE_SOUND("weapons/pl_gun5.wav"); // handgun
 
 	m_usFireGlock1 = PRECACHE_EVENT(1, "events/glock1.sc");
 	m_usFireGlock2 = PRECACHE_EVENT(1, "events/glock2.sc");
@@ -129,11 +131,11 @@ void CGlock::GlockFire(float flSpread, float flCycleTime, bool fUseAutoAim)
 	WRITE_COORD(pev->origin.x); // origin
 	WRITE_COORD(pev->origin.y);
 	WRITE_COORD(pev->origin.z);
-	WRITE_BYTE(16);	 // radius
+	WRITE_BYTE(192);	 // radius
 	WRITE_BYTE(255); // R
 	WRITE_BYTE(255); // G
-	WRITE_BYTE(160); // B
-	WRITE_BYTE(0);	 // life * 10
+	WRITE_BYTE(60); // B
+	WRITE_BYTE(0.7);	 // life * 10
 	WRITE_BYTE(0);	 // decay
 	MESSAGE_END();
 #endif
@@ -163,11 +165,15 @@ void CGlock::GlockFire(float flSpread, float flCycleTime, bool fUseAutoAim)
 		vecAiming = gpGlobals->v_forward;
 	}
 
+#ifndef CLIENT_DLL //YELLOW SHIFT screen shake
+	UTIL_ScreenShake(m_pPlayer->pev->origin, 1.2, 2.5, 0.3, 2, true);
+#endif
+
 	Vector vecDir;
 	vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, Vector(flSpread, flSpread, flSpread), 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
 
-	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), fUseAutoAim ? m_usFireGlock1 : m_usFireGlock2, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, (m_iClip == 0) ? 1 : 0, 0);
-
+	//PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), fUseAutoAim ? m_usFireGlock1 : m_usFireGlock2, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, (m_iClip == 0) ? 1 : 0, 0);
+	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), fUseAutoAim ? m_usFireGlock1 : m_usFireGlock2, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, m_iClip, 0);
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCycleTime);
 
 	if (0 == m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
@@ -183,17 +189,20 @@ void CGlock::Reload()
 	if (m_pPlayer->ammo_9mm <= 0)
 		return;
 
-	bool iResult;
-
 	if (m_iClip == 0)
-		iResult = DefaultReload(17, GLOCK_RELOAD, 1.5);
-	else
-		iResult = DefaultReload(17, GLOCK_RELOAD_NOT_EMPTY, 1.5);
+		switch (RANDOM_LONG(0, 1))
+		{
+		case 0:
+			DefaultReload(GLOCK_MAX_CLIP, GLOCK_RELOAD_EMPTY, 2.35);
+			break;
 
-	if (iResult)
-	{
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat(m_pPlayer->random_seed, 10, 15);
-	}
+		default:
+		case 1:
+			DefaultReload(GLOCK_MAX_CLIP, GLOCK_RELOAD_EMPTY2, 2.35);
+			break;
+		}
+	else
+		DefaultReload(GLOCK_MAX_CLIP, GLOCK_RELOAD, 1.5);
 }
 
 
